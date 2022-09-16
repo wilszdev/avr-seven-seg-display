@@ -112,7 +112,7 @@ digit_to_ssd:
 
 	; make sure the digit we got is less than 10	
 	subi SSD_PARAM, 10
-	brge end
+	brsh end
 	
 	subi SSD_PARAM, -10 ; restore value
 	add ZL, SSD_PARAM
