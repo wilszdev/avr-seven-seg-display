@@ -49,18 +49,28 @@ display:
 	lpm NUMBER, Z ; retrieve byte to output
 	out PORTD, NUMBER
 
-; delay so that the SSD displays properly
-	ldi r16, 255
+	; set value in timer 0 to r16
+	eor r16, r16
+	out TCNT0, r16
+	
+	; set the prescaler, so we get CLK/1024
+	ldi r16, 0b00000101
+	out TCCR0B, r16
+	
+	; value to compare to. should give us a delay of ~1ms
+	; 20MHz/1024/1000=19.5
+	ldi r16, 19
+	out OCR0A, r16
+	
+	; clear the OCF0A flag
+	ldi r16, 0b010
+	out TIFR0, r16
+	
 delay:
-	tst r16
-	breq main
-	dec r16
-	ldi r17, 50
-delay_inner:
-	tst r17
-	breq delay
-	dec r17
-	rjmp delay_inner
+	in r16, TIFR0 ; read timer 0 interrupt flag register
+	andi r16, 0b010 ; check OCF0A flag
+	breq delay ; keep spinning if it's not set
+	rjmp main
 
 
 ; bits: A B C D E F G 0
