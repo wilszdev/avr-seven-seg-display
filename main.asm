@@ -23,6 +23,17 @@ setup:
 	ldi r16, 0xFF
 	out DDRD, r16
 
+	; set up clock/timer
+
+	; set prescaler so we get CLK/1024
+	ldi r16, 0b101
+	out TCCR0B, r16
+
+	; value to compare to. should give us a delay of ~1ms
+	; 20MHz/1024/1000=19.5
+	ldi r16, 19
+	out OCR0A, r16
+
 main:
 	in NUMBER, PINC
 	out PORTB, MODE
@@ -49,23 +60,14 @@ display:
 	lpm NUMBER, Z ; retrieve byte to output
 	out PORTD, NUMBER
 
-	; set value in timer 0 to r16
+	; clear timer 0
 	eor r16, r16
 	out TCNT0, r16
-	
-	; set the prescaler, so we get CLK/1024
-	ldi r16, 0b00000101
-	out TCCR0B, r16
-	
-	; value to compare to. should give us a delay of ~1ms
-	; 20MHz/1024/1000=19.5
-	ldi r16, 19
-	out OCR0A, r16
-	
+
 	; clear the OCF0A flag
 	ldi r16, 0b010
 	out TIFR0, r16
-	
+
 delay:
 	in r16, TIFR0 ; read timer 0 interrupt flag register
 	andi r16, 0b010 ; check OCF0A flag
@@ -74,5 +76,5 @@ delay:
 
 
 ; bits: A B C D E F G 0
-; MSB -> LSB
+;      MSB...........LSB
 numbers: .db 0xfc, 0x60, 0xda, 0xf2, 0x66, 0xb6, 0xbe, 0xe0, 0xfe, 0xe6, 0xee, 0x3e, 0x9c, 0x7a, 0x9e, 0x8e
